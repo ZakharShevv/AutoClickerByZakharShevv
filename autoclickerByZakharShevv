@@ -1,0 +1,60 @@
+import time
+import tkinter as tk
+import threading
+import keyboard
+from pynput.mouse import Controller, Button
+
+auto_clicker_running = False
+mouse_controller = Controller()
+
+def auto_clicker():
+    while auto_clicker_running:
+        current_mouse_x, current_mouse_y = mouse_controller.position
+        mouse_controller.click(Button.left)
+        time.sleep(0.001)
+
+def toggle_auto_clicker():
+    global auto_clicker_running, click_thread
+    if auto_clicker_running:
+        auto_clicker_running = False
+        status_label.config(text="Авто-кликер выключен")
+        start_button.config(text="Включить кликер")
+        click_thread.join()
+    else:
+        auto_clicker_running = True
+        status_label.config(text="Авто-кликер включен")
+        start_button.config(text="Выключить кликер")
+        click_thread = threading.Thread(target=auto_clicker)
+        click_thread.start()
+
+def exit_program():
+    global auto_clicker_running
+    auto_clicker_running = False
+    root.quit()
+
+def toggle_with_key():
+    toggle_auto_clicker()
+
+root = tk.Tk()
+root.title("Авто-Кликер")
+root.geometry("300x200")
+
+status_label = tk.Label(root, text="Авто-кликер выключен", font=("Arial", 12))
+status_label.pack(pady=20)
+
+start_button = tk.Button(root, text="Включить кликер", font=("Arial", 12), command=toggle_auto_clicker)
+start_button.pack(pady=10)
+
+exit_button = tk.Button(root, text="Выход", font=("Arial", 12), command=exit_program)
+exit_button.pack(pady=10)
+
+def listen_for_k():
+    while True:
+        if keyboard.is_pressed('k'):
+            toggle_with_key()
+            time.sleep(0.5)
+
+keyboard_thread = threading.Thread(target=listen_for_k, daemon=True)
+keyboard_thread.start()
+
+root.mainloop()
